@@ -1,5 +1,6 @@
 package com.spotify.oauth2.tests;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.oauth2.api.Application.PlaylistAPI;
 import com.spotify.oauth2.api.StatusCode;
 import com.spotify.oauth2.pojo.Error;
@@ -8,6 +9,7 @@ import com.spotify.oauth2.utils.DataLoader;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
 import io.restassured.response.ResponseBody;
+import org.json.JSONObject;
 import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
@@ -22,7 +24,8 @@ import static io.restassured.RestAssured.given;
 @Feature("Playlist API")
 
 public class PlaylistTests extends BaseTest {
-    String ResponseGetId;
+    public static final ObjectMapper mapper = new ObjectMapper();
+
     @Story("Create A Playlist Story")
     @Description("Description: This is the Description of Test Case 1 i.e. ShouldBeAbleToCreateAPlaylist")
     @Test(description = "Should Be Able to Create A Playlist")
@@ -34,39 +37,28 @@ public class PlaylistTests extends BaseTest {
         assertStatusCode(response.statusCode(), StatusCode.CODE_201.code);
 
         Playlist responsePlaylist = response.as(Playlist.class);
-
         assertPlaylistEqual(responsePlaylist, requestPlaylist);
 
-        System.out.println("The ID of the created Playlist is " + responsePlaylist.getId());
-        ResponseGetId = responsePlaylist.getId();
-        System.out.println(ResponseGetId);
+        String StorePlaylistID = responsePlaylist.getId();
+        System.out.println("The ID of the created Playlist is " + StorePlaylistID);
+        PlaylistTests playlistTests= new PlaylistTests();
+        playlistTests.getIdFromPost(StorePlaylistID);
+        playlistTests.UpdatePlaylistGetFromPost(StorePlaylistID);
+    }
+    @Description("Description: This is the Description of Test Case 2 i.e. getIdFromPost")
+    //@Test(description = "Should be Able to Fetch the Playlist ID Created From POST Request")
+    public void getIdFromPost(String StorePlaylistID){
+
+        Response response = PlaylistAPI.get(StorePlaylistID);
+        assertThat(response.statusCode(), equalTo(200));
+
     }
 
-//    @Test
-//    public void getIdFromPost(){
-//
-//        Playlist requestPlaylist = new Playlist().
-//                setName("Updated POJO Playlist 4").
-//                setDescription("Updated Description of POJO Playlist 4").
-//                setPublic(false);
-//
-//        Response response = PlaylistAPI.get(DataLoader.getInstance().getPlaylistId());
-//        assertThat(response.statusCode(), equalTo(200));
-//
-//        Playlist responsePlaylist = response.as(Playlist.class);
-//        System.out.println("This is what " + ResponseGetId);
-//
-//        assertThat(responsePlaylist.getName(), equalTo(requestPlaylist.getName()));
-//        assertThat(responsePlaylist.getDescription(), equalTo(requestPlaylist.getDescription()));
-//        assertThat(responsePlaylist.getPublic(), equalTo(requestPlaylist.getPublic()));
-//
-//    }
-
-    @Description("Description: This is the Description of Test Case 2 i.e. ShouldBeAbleToGetAPlaylist")
+    @Description("Description: This is the Description of Test Case 3 i.e. ShouldBeAbleToGetAPlaylist")
     @Test(description = "Should be Able to Get A Playlist using the Playlist ID")
     public void ShouldBeAbleToGetAPlaylist(){
 
-        Playlist requestPlaylist = playlistBuilder("Updated POJO Playlist 4", "Updated Description of POJO Playlist 4", false);
+        Playlist requestPlaylist = playlistBuilder("Updated POJO Playlist", "Updated Description of POJO Playlist 4", false);
 
         Response response = PlaylistAPI.get(DataLoader.getInstance().getPlaylistId());
         assertStatusCode(response.statusCode(), StatusCode.CODE_200.code);
@@ -74,11 +66,22 @@ public class PlaylistTests extends BaseTest {
         assertPlaylistEqual(responsePlaylist, requestPlaylist);
 
     }
-    @Description("Description: This is the Description of Test Case 3 i.e. ShouldBeAbleToUpdateAPlaylist")
+
+    @Description("Description: This is the Description of Test Case 4 i.e. ShouldBeAbleToUpdateAPlaylist")
+    //@Test (description = "Should be Able to Update the Playlist's Parameters get from POST request")
+    public void UpdatePlaylistGetFromPost(String StorePlaylistID){
+
+        Playlist requestPlaylist = playlistBuilder("Experiment Successful", "Operation Successful", false);
+
+        Response response = PlaylistAPI.update(StorePlaylistID, requestPlaylist);
+        assertStatusCode(response.statusCode(), StatusCode.CODE_200.code);
+    }
+
+    @Description("Description: This is the Description of Test Case 5 i.e. ShouldBeAbleToUpdateAPlaylist")
     @Test (description = "Should be Able to Update the Playlist's Parameters")
     public void ShouldBeAbleToUpdateAPlaylist(){
 
-        Playlist requestPlaylist = playlistBuilder("Updated POJO Playlist 4", "Updated Description of POJO Playlist 4", false);
+        Playlist requestPlaylist = playlistBuilder("Updated POJO Playlist", "Updated Description of POJO Playlist 4", false);
 
         Response response = PlaylistAPI.update(DataLoader.getInstance().getUpdatePlaylistId(), requestPlaylist);
         assertStatusCode(response.statusCode(), StatusCode.CODE_200.code);
@@ -95,7 +98,7 @@ public class PlaylistTests extends BaseTest {
        assertStatusCode(response.statusCode(), StatusCode.CODE_400.code);
 
         Error error = response.as(Error.class);
-        asserError(error, StatusCode.CODE_400.code, StatusCode.CODE_400.msg);
+        assertError(error, StatusCode.CODE_400.code, StatusCode.CODE_400.msg);
 
     }
     @Story("Create A Playlist Story")
@@ -110,7 +113,7 @@ public class PlaylistTests extends BaseTest {
 
         Error error = response.as(Error.class);
 
-        asserError(error, StatusCode.CODE_401.code, StatusCode.CODE_401.msg);
+        assertError(error, StatusCode.CODE_401.code, StatusCode.CODE_401.msg);
     }
     @Step
     public Playlist playlistBuilder(String name, String description, boolean _public){
@@ -136,7 +139,7 @@ public class PlaylistTests extends BaseTest {
     }
 
     @Step
-    public void asserError(Error error, int expectedStatusCode, String expectedMsg){
+    public void assertError(Error error, int expectedStatusCode, String expectedMsg){
 
         assertThat(error.getError().getStatus(), equalTo(expectedStatusCode));
         assertThat(error.getError().getMessage(), equalTo(expectedMsg));
