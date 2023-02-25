@@ -30,4 +30,10 @@ public class DataLoader {
         else throw new RuntimeException("property update_playlist_id  is not specified in the config.properties file");
     }
 
+    public String getSongId(){
+        String prop = properties.getProperty("addsong_playlist_id");
+        if (prop != null) return prop;
+        else throw new RuntimeException("property update_playlist_id  is not specified in the config.properties file");
+    }
+
 }

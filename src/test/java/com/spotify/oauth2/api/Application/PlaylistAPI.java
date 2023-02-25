@@ -1,6 +1,7 @@
 package com.spotify.oauth2.api.Application;
 
 import com.spotify.oauth2.api.RestResource;
+import com.spotify.oauth2.pojo.AddSongInPlaylist;
 import com.spotify.oauth2.pojo.Playlist;
 import com.spotify.oauth2.utils.ConfigLoader;
 import io.qameta.allure.Step;
@@ -8,10 +9,7 @@ import io.restassured.response.Response;
 
 import static com.spotify.oauth2.api.Route.PLAYLISTS;
 import static com.spotify.oauth2.api.Route.USERS;
-import static com.spotify.oauth2.api.SpecBuilder.getRequestSpec;
-import static com.spotify.oauth2.api.SpecBuilder.getResponseSpec;
 import static com.spotify.oauth2.api.TokenManager.getToken;
-import static com.spotify.oauth2.api.TokenManager.renewToken;
 import static io.restassured.RestAssured.given;
 
 public class PlaylistAPI {
@@ -23,15 +21,24 @@ public class PlaylistAPI {
 
     }
 
+    public static Response postSong(String playlistID, AddSongInPlaylist songTrackId){
+        return RestResource.postSong(PLAYLISTS + "/" + playlistID, getToken(), songTrackId);
+
+    }
+
     public static Response post(String token, Playlist requestPlaylist){
         return RestResource.post(USERS + ConfigLoader.getInstance().getUserId() + PLAYLISTS, token, requestPlaylist);
 
     }
 
+
+
     public static Response get(String playlistId){
         return RestResource.get(PLAYLISTS + "/" + playlistId, getToken());
 
     }
+
+
 
     public static Response update(String playlistID, Playlist requestPlaylist){
         return RestResource.update(PLAYLISTS + "/" + playlistID, getToken(), requestPlaylist);

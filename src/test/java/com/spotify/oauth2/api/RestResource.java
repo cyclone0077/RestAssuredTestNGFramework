@@ -6,8 +6,7 @@ import io.restassured.response.Response;
 
 import java.util.HashMap;
 
-import static com.spotify.oauth2.api.Route.API;
-import static com.spotify.oauth2.api.Route.TOKEN;
+import static com.spotify.oauth2.api.Route.*;
 import static com.spotify.oauth2.api.SpecBuilder.*;
 import static io.restassured.RestAssured.given;
 
@@ -22,6 +21,19 @@ public class RestResource {
                 post(path).
 
         then().spec(getResponseSpec()).
+                extract().
+                response();
+    }
+
+    public static Response postSong( String path, String token, Object songTrackId){
+
+        return given(getRequestSpec()).
+                auth().oauth2(token).
+                body(songTrackId).
+                when().
+                post(path + TRACKS).
+
+                then().spec(getResponseSpec()).
                 extract().
                 response();
     }

@@ -4,14 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.spotify.oauth2.api.Application.PlaylistAPI;
 import com.spotify.oauth2.api.StatusCode;
 import com.spotify.oauth2.pojo.Error;
+import com.spotify.oauth2.pojo.AddSongInPlaylist;
 import com.spotify.oauth2.pojo.Playlist;
 import com.spotify.oauth2.utils.DataLoader;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
-import io.restassured.response.ResponseBody;
-import org.json.JSONObject;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
+
+import java.util.Collections;
+import java.util.List;
 
 import static com.spotify.oauth2.utils.FakeUtils.generatePlaylistDescription;
 import static com.spotify.oauth2.utils.FakeUtils.generatePlaylistName;
@@ -27,10 +28,9 @@ public class PlaylistTests extends BaseTest {
     public static final ObjectMapper mapper = new ObjectMapper();
 
     @Story("Create A Playlist Story")
-    @Description("Description: This is the Description of Test Case 1 i.e. ShouldBeAbleToCreateAPlaylist")
-    @Test(description = "Should Be Able to Create A Playlist")
+    @Description("Here I am creating a Fresh Playlist, fetching the Playlist ID once it is created and then using the same ID for updating the Playlist name and Description")
+    @Test(description = "User Should Be Able to Create A Playlist")
     public void ShouldBeAbleToCreateAPlaylist(){
-//Builder Pattern with POJO classes
         Playlist requestPlaylist = playlistBuilder(generatePlaylistName(), generatePlaylistDescription(), false);
 
         Response response = PlaylistAPI.post(requestPlaylist);
@@ -45,17 +45,32 @@ public class PlaylistTests extends BaseTest {
         playlistTests.getIdFromPost(StorePlaylistID);
         playlistTests.UpdatePlaylistGetFromPost(StorePlaylistID);
     }
-    @Description("Description: This is the Description of Test Case 2 i.e. getIdFromPost")
-    //@Test(description = "Should be Able to Fetch the Playlist ID Created From POST Request")
     public void getIdFromPost(String StorePlaylistID){
 
         Response response = PlaylistAPI.get(StorePlaylistID);
         assertThat(response.statusCode(), equalTo(200));
 
     }
+    public void UpdatePlaylistGetFromPost(String StorePlaylistID){
 
-    @Description("Description: This is the Description of Test Case 3 i.e. ShouldBeAbleToGetAPlaylist")
-    @Test(description = "Should be Able to Get A Playlist using the Playlist ID")
+        Playlist requestPlaylist = playlistBuilder("Experiment Successful", "Operation Successful", false);
+
+        Response response = PlaylistAPI.update(StorePlaylistID, requestPlaylist);
+        assertStatusCode(response.statusCode(), StatusCode.CODE_200.code);
+    }
+
+
+    @Description("Here I am adding a song item in a Playlist")
+    @Test(description = "User Should Be Able to Add a Song in Playlist")
+    public void postTrack(){
+
+        AddSongInPlaylist songTrackId = expertBuilder(Collections.singletonList("spotify:track:4iV5W9uYEdYUVa79Axb7Rh"), 0);
+        Response response = PlaylistAPI.postSong(DataLoader.getInstance().getSongId(),songTrackId);
+        assertStatusCode(response.statusCode(), StatusCode.CODE_201.code);
+    }
+
+    @Description("Here I am fetching an already created Playlist and then comparing the fields of Playlist in Request and Response")
+    @Test(description = "User Should be Able to Get A Playlist using the Playlist ID")
     public void ShouldBeAbleToGetAPlaylist(){
 
         Playlist requestPlaylist = playlistBuilder("Updated POJO Playlist", "Updated Description of POJO Playlist 4", false);
@@ -67,17 +82,9 @@ public class PlaylistTests extends BaseTest {
 
     }
 
-    @Description("Description: This is the Description of Test Case 4 i.e. ShouldBeAbleToUpdateAPlaylist")
-    //@Test (description = "Should be Able to Update the Playlist's Parameters get from POST request")
-    public void UpdatePlaylistGetFromPost(String StorePlaylistID){
 
-        Playlist requestPlaylist = playlistBuilder("Experiment Successful", "Operation Successful", false);
 
-        Response response = PlaylistAPI.update(StorePlaylistID, requestPlaylist);
-        assertStatusCode(response.statusCode(), StatusCode.CODE_200.code);
-    }
-
-    @Description("Description: This is the Description of Test Case 5 i.e. ShouldBeAbleToUpdateAPlaylist")
+    @Description("Here I am updating the name of Playlist which is already created and then comparing the Playlist's fields in Request and Response")
     @Test (description = "Should be Able to Update the Playlist's Parameters")
     public void ShouldBeAbleToUpdateAPlaylist(){
 
@@ -88,8 +95,8 @@ public class PlaylistTests extends BaseTest {
     }
 
     @Story("Create A Playlist Story")
-    @Description("Description: This is the Description of Test Case 4 i.e. ShouldNotBeAbleToCreateAPlaylistWithoutName")
-    @Test(description = "Should Not be Able to Create A Playlist When The Name is not provided in Name param")
+    @Description("Here I should not be able to create a Playlist if the Playlist name is not provided")
+    @Test(description = "User Should Not be Able to Create A Playlist When The Name is not provided in Name param")
     public void ShouldNotBeAbleToCreateAPlaylistWithoutName(){
 
         Playlist requestPlaylist = playlistBuilder("", "Updated Description of POJO Playlist 4", false);
@@ -102,7 +109,7 @@ public class PlaylistTests extends BaseTest {
 
     }
     @Story("Create A Playlist Story")
-    @Description("Description: This is the Description of Test Case 5 i.e. ShouldNotBeAbleToCreateAPlaylistWithExpiredToken")
+    @Description("Here I should not be able to create a Playlist if the Token has expired")
     @Test(description = "Should Not be Able to Create a Playlist Using the Expired Token")
     public void ShouldNotBeAbleToCreateAPlaylistWithExpiredToken(){
 
@@ -123,6 +130,13 @@ public class PlaylistTests extends BaseTest {
                 _public(_public).
                 build();
 
+    }
+    @Step
+    public AddSongInPlaylist expertBuilder(List<String> uris, int position){
+        return AddSongInPlaylist.builder().
+                uris(uris).
+                position(position).
+                build();
     }
 
     @Step
@@ -146,5 +160,7 @@ public class PlaylistTests extends BaseTest {
     }
 
 }
+
+
 
 
