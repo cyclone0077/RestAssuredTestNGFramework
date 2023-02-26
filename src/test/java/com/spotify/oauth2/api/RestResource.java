@@ -33,7 +33,7 @@ public class RestResource {
                 when().
                 post(path + TRACKS).
 
-                then().spec(getResponseSpec()).
+        then().spec(getResponseSpec()).
                 extract().
                 response();
     }

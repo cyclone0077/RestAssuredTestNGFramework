@@ -6,6 +6,7 @@ import com.spotify.oauth2.api.StatusCode;
 import com.spotify.oauth2.pojo.Error;
 import com.spotify.oauth2.pojo.AddSongInPlaylist;
 import com.spotify.oauth2.pojo.Playlist;
+import com.spotify.oauth2.pojo.SnapshotResponse;
 import com.spotify.oauth2.utils.DataLoader;
 import io.qameta.allure.*;
 import io.restassured.response.Response;
@@ -63,10 +64,15 @@ public class PlaylistTests extends BaseTest {
     @Description("Here I am adding a song item in a Playlist")
     @Test(description = "User Should Be Able to Add a Song in Playlist")
     public void postTrack(){
-
         AddSongInPlaylist songTrackId = expertBuilder(Collections.singletonList("spotify:track:4iV5W9uYEdYUVa79Axb7Rh"), 0);
         Response response = PlaylistAPI.postSong(DataLoader.getInstance().getSongId(),songTrackId);
         assertStatusCode(response.statusCode(), StatusCode.CODE_201.code);
+
+        SnapshotResponse sp = response.as(SnapshotResponse.class);
+        String snapshotId = sp.getSnapshot_id();
+        System.out.println("Snapshot ID is " + snapshotId);
+
+
     }
 
     @Description("Here I am fetching an already created Playlist and then comparing the fields of Playlist in Request and Response")
